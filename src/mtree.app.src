@@ -1,0 +1,12 @@
+{application, mtree,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {mod, { mtree_app, []}},
+  {env, []}
+ ]}.
