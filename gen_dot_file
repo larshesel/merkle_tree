@@ -1,0 +1,13 @@
+#!/usr/bin/env escript
+%%! -pa ./ebin verbose debug
+%% -*- mode: erlang -*-
+
+main(["dot", "raw"]) ->
+    util:dot_tree(raw_tree()).
+
+
+
+raw_tree() ->
+    SL = lists:seq(1,200),
+    BinList = erlang:list_to_binary(lists:flatten([SL || _ <- lists:seq(1,142)])),
+    mtree_raw:build_tree(BinList).

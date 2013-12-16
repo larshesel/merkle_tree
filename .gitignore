@@ -1,0 +1,18 @@
+# General:
+*~
+*.bak
+*.log
+*.log.*
+nohup.out
+*.iml
+
+# Erlang-related:
+/deps/*
+*_pb.hrl
+/rel/riak_sync
+/.eunit
+*.beam
+erl_crash.dump
+.eunit
+*.app
+/logs
