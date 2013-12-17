@@ -1,6 +1,9 @@
 
 all:	compile
 
+test:	compile
+	rebar eunit skip_deps=true
+
 compile:
 	rebar compile
 
@@ -13,4 +16,4 @@ raw-dot-tree: compile
 rm-backup-files:
 	find . -name "*~" -exec rm {} \;
 
-.PHONY: raw-dot-tree dot-test compile rm-backup-files all compile clean
+.PHONY: raw-dot-tree compile rm-backup-files all compile clean

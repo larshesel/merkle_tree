@@ -1,6 +1,6 @@
 -module(mtree_raw).
 
--export([build_tree/1]).
+-export([build_tree/1, build_tree/2]).
 
 -include("mtree.hrl").
 
@@ -8,11 +8,11 @@
 
 -spec build_tree(binary()) -> mtree().
 build_tree(Raw) ->
-    Leaves = mk_leaves(Raw),
-    mtree:build_tree_bottom_up(Leaves).
+    build_tree(Raw, ?CHUNK_SIZE).
 
-mk_leaves(Raw) ->
-    mk_leaves(Raw, ?CHUNK_SIZE, []).
+build_tree(Raw, ChunkSize) ->
+    Leaves = mk_leaves(Raw, ChunkSize, []),
+    mtree:build_tree_bottom_up(Leaves).
 
 mk_leaves(Data, Size, Acc) ->
     case Data of

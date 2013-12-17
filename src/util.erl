@@ -1,6 +1,6 @@
 -module(util).
 
--export([dot_tree/1]).
+-export([dot_tree/1, pos_to_bin/1, bin_to_pos/1]).
 
 dot_tree(Tree) ->
     io:format("digraph merkeltree {~n"
@@ -30,3 +30,24 @@ output_nodes({node, <<Head:3/binary, _/binary>>, L, R}, Num) ->
     NewNum = output_nodes(R, Num + 1),
     io:format("~p -> ~p;~n", [Num, NewNum + 1]),
     output_nodes(L, NewNum + 1).
+
+bin_to_pos(Bin) ->
+    bin_to_pos(Bin, []).
+
+bin_to_pos(<<>>, Acc) ->
+    lists:reverse(Acc);
+bin_to_pos(<<0:1, Rest/bitstring>>, Acc) ->
+    bin_to_pos(Rest, [l |Acc]);
+bin_to_pos(<<1:1, Rest/bitstring>>, Acc) ->
+    bin_to_pos(Rest, [r |Acc]).
+
+pos_to_bin(Pos) ->
+    pos_to_bin(Pos, <<>>).
+
+pos_to_bin([], Bits) ->
+    Bits;
+pos_to_bin([l | T], Bits) ->
+    pos_to_bin(T, <<Bits/bitstring, 0:1>>);
+pos_to_bin([r | T], Bits) ->
+    pos_to_bin(T, <<Bits/bitstring, 1:1>>).
+

@@ -1,8 +1,19 @@
 -module(mtree).
 
--export([build_tree/1, build_tree_bottom_up/1, mk_leaf/1]).
+-export([build_tree/1, build_tree_bottom_up/1, mk_leaf/1, get_node_val/2]).
 
 -include("mtree.hrl").
+
+-spec get_node_val(T :: mtree(), Pos :: [integer()]) -> val() | key().
+get_node_val({node, Key, _L,_R}, []) ->
+    {node, Key};
+get_node_val({node, _Key, L, _R}, [l|T]) ->
+    get_node_val(L, T);
+get_node_val({node, _Key, _L, R}, [r|T]) ->
+    get_node_val(R, T);
+get_node_val({leaf, Val}, []) ->
+    {leaf, Val}.
+
 
 -spec build_tree_bottom_up([mtree_leaf()]) -> mtree().
 build_tree_bottom_up(Leaves) ->
