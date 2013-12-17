@@ -4,7 +4,7 @@
 
 -include("mtree.hrl").
 
--spec get_node_val(T :: mtree(), Pos :: [integer()]) -> val() | key().
+-spec get_node_val(T :: mtree(), Pos :: [integer()]) -> val().
 get_node_val({node, Key, _L,_R}, []) ->
     {node, Key};
 get_node_val({node, _Key, L, _R}, [l|T]) ->
