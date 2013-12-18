@@ -1,28 +1,59 @@
 -module(mtree).
 
--export([build_tree/1, build_tree_bottom_up/1, mk_leaf/1, get_node_val/2]).
+-export([build_tree_bottom_up/1, mk_leaf/1, get_node_val/2]).
+
+-export([new/0, insert/3, verify/1]).
 
 -include("mtree.hrl").
 
--spec get_node_val(T :: mtree(), Pos :: [integer()]) -> val().
-get_node_val({node, Key, _L,_R}, []) ->
-    {node, Key};
-get_node_val({node, _Key, L, _R}, [l|T]) ->
+%% build tree node, by node.
+
+new() ->
+    {leaf, nil}.
+
+-spec insert(mtree(), val(), pos_bin()) ->
+		    mtree().
+insert({leaf, _Val}, Val, <<>>) ->
+    %% replace leaf val.
+    {leaf, Val};
+insert({leaf, Val}, LVal, <<0:1, Pos/bitstring>>) ->
+    %% upgrade leaf to node and recurse left
+    {node, Val, insert({leaf, nil}, LVal, Pos), {leaf, nil}};
+insert({leaf, Val}, RVal, <<1:1, Pos/bitstring>>) ->
+    %% upgrade leaf to node and recurse right
+    {node, Val, {leaf, nil}, insert({leaf, nil}, RVal, Pos)};
+insert({node, _Val, L, R}, Val, <<>>) ->
+    %% replace node val
+    {node, Val, L, R};
+insert({node, Val, L, R}, LVal, <<0:1, Pos/bitstring>>) ->
+    {node, Val, insert(L, LVal, Pos), R};
+insert({node, Val, L, R}, RVal, <<1:1, Pos/bitstring>>) ->
+    {node, Val, L, insert(R, RVal, Pos)}.
+
+-spec get_node_val(T :: mtree(), pos_bin()) ->
+			  {leaf, val()} | {node, val()}.
+get_node_val({node, Val, _L,_R}, <<>>) ->
+    {node, Val};
+get_node_val({node, _Val, L, _R}, <<0:1, T/bitstring>>) ->
     get_node_val(L, T);
-get_node_val({node, _Key, _L, R}, [r|T]) ->
+get_node_val({node, _Val, _L, R}, <<1:1, T/bitstring>>) ->
     get_node_val(R, T);
-get_node_val({leaf, Val}, []) ->
+get_node_val({leaf, Val}, <<>>) ->
     {leaf, Val}.
 
+
+verify({node, Val, L, R}) ->
+    VL = verify(L),
+    VR = verify(R),
+    Hash = hash(<<VL/binary, VR/binary>>),
+    Val = Hash;
+verify({leaf, Val}) ->
+    Val.
 
 -spec build_tree_bottom_up([mtree_leaf()]) -> mtree().
 build_tree_bottom_up(Leaves) ->
     BottomNodes = lists:reverse(build_leaves(Leaves, [])),
     build_tree(BottomNodes, []).
-
-build_tree(LeafData) ->
-    Leaves = lists:sort([ mk_leaf(Data) || Data <- LeafData ]),
-    build_tree(Leaves, []).
 
 
 build_leaves([L, R | T], Acc) ->

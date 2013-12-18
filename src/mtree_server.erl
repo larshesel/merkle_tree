@@ -2,6 +2,8 @@
 
 -behaviour(gen_server).
 
+-include("mtree.hrl").
+
 %% API
 -export([start_link/1]).
 
@@ -22,7 +24,7 @@
 start_link(MerkleTree) ->
     gen_server:start_link(?MODULE, [MerkleTree], []).
 
--spec get_node_val(pid(), bitstring()) ->
+-spec get_node_val(pid(), pos_bin()) ->
 			  {ok, any()}.
 get_node_val(Pid, Pos) ->
     gen_server:call(Pid, {get_node_val, Pos}).
