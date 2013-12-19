@@ -1,7 +1,9 @@
-# Merkel Trees
+# Merkle Trees
+[![Build Status](https://travis-ci.org/larshesel/merkle_tree.png?branch=master)](https://travis-ci.org/larshesel/merkle_tree)
 
-I have been fascinated with Merkle trees for a long time, and decided
-I wanted to build my own in Erlang.
+
+I have been fascinated with Merkle trees or hash trees for a long
+time, and decided I wanted to build my own in Erlang.
 
 My long term goal (if I don't loose interest) is to build generic
 Merkle trees for synchronizing many different kinds of data such as
