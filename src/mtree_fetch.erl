@@ -17,7 +17,7 @@ fetch(Pid, T, Pos) ->
     case Type of
 	leaf ->
 	    T1;
-	node ->
+	inner ->
 	    %% go left
 	    TLeft = fetch(Pid, T1, <<Pos/bitstring, 0:1>>),
 	    %% go right

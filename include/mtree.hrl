@@ -2,7 +2,7 @@
 -type hash() :: binary().
 
 -type val() :: hash() | nil.
--type mtree_node() :: {node, Val::val(), Left::mtree(), Right::mtree()}.
+-type mtree_node() :: {inner, Val::val(), Left::mtree(), Right::mtree()}.
 -type mtree_leaf() :: {leaf, Val::val()}.
 -type mtree() :: mtree_node()
 	       | mtree_leaf().

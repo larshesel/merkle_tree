@@ -18,31 +18,31 @@ insert({leaf, _Val}, Val, <<>>) ->
     {leaf, Val};
 insert({leaf, Val}, LVal, <<0:1, Pos/bitstring>>) ->
     %% upgrade leaf to node and recurse left
-    {node, Val, insert({leaf, nil}, LVal, Pos), {leaf, nil}};
+    {inner, Val, insert({leaf, nil}, LVal, Pos), {leaf, nil}};
 insert({leaf, Val}, RVal, <<1:1, Pos/bitstring>>) ->
     %% upgrade leaf to node and recurse right
-    {node, Val, {leaf, nil}, insert({leaf, nil}, RVal, Pos)};
-insert({node, _Val, L, R}, Val, <<>>) ->
+    {inner, Val, {leaf, nil}, insert({leaf, nil}, RVal, Pos)};
+insert({inner, _Val, L, R}, Val, <<>>) ->
     %% replace node val
-    {node, Val, L, R};
-insert({node, Val, L, R}, LVal, <<0:1, Pos/bitstring>>) ->
-    {node, Val, insert(L, LVal, Pos), R};
-insert({node, Val, L, R}, RVal, <<1:1, Pos/bitstring>>) ->
-    {node, Val, L, insert(R, RVal, Pos)}.
+    {inner, Val, L, R};
+insert({inner, Val, L, R}, LVal, <<0:1, Pos/bitstring>>) ->
+    {inner, Val, insert(L, LVal, Pos), R};
+insert({inner, Val, L, R}, RVal, <<1:1, Pos/bitstring>>) ->
+    {inner, Val, L, insert(R, RVal, Pos)}.
 
 -spec get_node_val(T :: mtree(), pos_bin()) ->
-			  {leaf, val()} | {node, val()}.
-get_node_val({node, Val, _L,_R}, <<>>) ->
-    {node, Val};
-get_node_val({node, _Val, L, _R}, <<0:1, T/bitstring>>) ->
+			  {leaf, val()} | {inner, val()}.
+get_node_val({inner, Val, _L,_R}, <<>>) ->
+    {inner, Val};
+get_node_val({inner, _Val, L, _R}, <<0:1, T/bitstring>>) ->
     get_node_val(L, T);
-get_node_val({node, _Val, _L, R}, <<1:1, T/bitstring>>) ->
+get_node_val({inner, _Val, _L, R}, <<1:1, T/bitstring>>) ->
     get_node_val(R, T);
 get_node_val({leaf, Val}, <<>>) ->
     {leaf, Val}.
 
 
-verify({node, Val, L, R}) ->
+verify({inner, Val, L, R}) ->
     VL = verify(L),
     VR = verify(R),
     Hash = hash(<<VL/binary, VR/binary>>),
@@ -79,13 +79,13 @@ build_tree([], [Root]) ->
 -spec create_node(mtree(), mtree()) ->
 			 mtree().
 create_node({leaf, D1} = L, {leaf, D2} = R) ->
-    {node, hash(<<D1/binary, D2/binary>>), L, R};
-create_node({leaf, D1} = L, {node, K2, _LC, _RC} = R)->
-    {node, hash(<<D1/binary, K2/binary>>), L, R};
-create_node({node, K1, _LC, _RC} = L, {leaf, D2} = R) ->
-    {node, hash(<<K1/binary, D2/binary>>), L, R};
-create_node({node, K1, _, _} = L, {node, K2, _, _} = R) ->
-    {node, hash(<<K1/binary, K2/binary>>), L, R}.
+    {inner, hash(<<D1/binary, D2/binary>>), L, R};
+create_node({leaf, D1} = L, {inner, K2, _LC, _RC} = R)->
+    {inner, hash(<<D1/binary, K2/binary>>), L, R};
+create_node({inner, K1, _LC, _RC} = L, {leaf, D2} = R) ->
+    {inner, hash(<<K1/binary, D2/binary>>), L, R};
+create_node({inner, K1, _, _} = L, {inner, K2, _, _} = R) ->
+    {inner, hash(<<K1/binary, K2/binary>>), L, R}.
 
 -spec mk_leaf(val()) ->
 		     mtree_leaf().

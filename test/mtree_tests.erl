@@ -40,7 +40,7 @@ create_root_and_two_leaves_test() ->
     T2 = mtree:insert(T, root, <<>>),
     T3 = mtree:insert(T2, left_leaf, <<0:1>>),
     T4 = mtree:insert(T3, right_leaf, <<1:1>>),
-    ?assertEqual({node, root, {leaf, left_leaf}, {leaf, right_leaf}}, T4).
+    ?assertEqual({inner, root, {leaf, left_leaf}, {leaf, right_leaf}}, T4).
 
 triq_test_() ->
     {timeout, 60,
