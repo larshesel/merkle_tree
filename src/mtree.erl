@@ -41,13 +41,26 @@ get_node_val({inner, _Val, _L, R}, <<1:1, T/bitstring>>) ->
 get_node_val({leaf, Val}, <<>>) ->
     {leaf, Val}.
 
+-spec verify(mtree()) -> ok | {pos_bin(), hash(), hash()}.
+verify(T) ->
+    try
+	verify(T, <<>>),
+	ok
+    catch Ex ->
+	    Ex
+    end.
 
-verify({inner, Val, L, R}) ->
-    VL = verify(L),
-    VR = verify(R),
-    Hash = hash(<<VL/binary, VR/binary>>),
-    Val = Hash;
-verify({leaf, Val}) ->
+verify({inner, Val, L, R}, Pos) ->
+    VL = verify(L, <<Pos/bitstring, 0:1>>),
+    VR = verify(R, <<Pos/bitstring, 1:1>>),
+    ActualHash = hash(<<VL/binary, VR/binary>>),
+
+    if ActualHash =/= Val ->
+	    throw({Pos, Val, ActualHash});
+       true ->
+	    ActualHash
+    end;
+verify({leaf, Val}, _Pos) ->
     Val.
 
 -spec build_tree_bottom_up([mtree_leaf()]) -> mtree().

@@ -9,9 +9,6 @@ create_mtree() ->
     BinList = erlang:list_to_binary(lists:flatten([SL || _ <- lists:seq(1,142)])),
     mtree_raw:build_tree(BinList).
 
-%% create_small_mtree() ->
-%%     mtree_raw:build_tree(<<1>>, 1).
-
 server_client_get_root_node_test() ->
     MTree = create_mtree(),
     {ok, ServerPid} = mtree_server:start_link(MTree),
@@ -26,6 +23,23 @@ server_client_fetch_tree_test() ->
     {ok, FetchedTree} = mtree_fetch:fetch(ServerPid),
     MTree = FetchedTree.
 
+count_nodes_test() ->
+    T = mtree:new(),
+    T1 = mtree:insert(T, root, <<>>),
+    ?assertEqual(1, util:count_nodes(T1)),
+    ?assertEqual(1, util:count_leaves(T1)),
+
+    T2 = mtree:insert(T1, left_leaf, <<0:1>>),
+    %% the above insert will have forced the root node to have two
+    %% children (the right has a nil value):
+    ?assertEqual(3, util:count_nodes(T2)),
+    ?assertEqual(2, util:count_leaves(T2)),
+
+    T3 = mtree:insert(T1, right_leaf, <<1:1>>),
+    %% the above insert will only have updated the value of the right
+    %% child, not added anymore nodes to the tree.
+    ?assertEqual(3, util:count_nodes(T3)),
+    ?assertEqual(2, util:count_leaves(T3)).
 
 mtree_new_test() ->
     ?assertEqual({leaf, nil}, mtree:new()).
@@ -34,6 +48,13 @@ mtree_create_root_test() ->
     T = mtree:new(),
     ?assertEqual({leaf, root}, mtree:insert(T, root, <<>>)).
 
+verify_invalid_tree_test() ->
+    Data = <<1,2,3,4>>,
+    T = mtree_raw:build_tree(Data, 1),
+    ?assertEqual(ok, mtree:verify(T)),
+    InvalidTree = mtree:insert(T, <<27>>, <<0:1,1:1>>),
+    {Pos, _ExHash, _ActHash} = mtree:verify(InvalidTree),
+    ?assertEqual(<<0:1>>, Pos).
 
 create_root_and_two_leaves_test() ->
     T = mtree:new(),
