@@ -1,0 +1,76 @@
+// Normal communication sequence
+// C                           S
+// | ------ Handshake -------->|
+// | <------- Ack -------------|
+// |                           |
+// | ----- fetch tree -------->|
+// | <---- set of leaves ------|
+// | <---- fetch done ---------|
+// |
+// | ------ get hash <<>> ---->|
+// | <----- hash --------------|
+
+message Pair {
+  required bytes key = 1;
+  required bytes val = 2;
+}
+
+// Handshake
+message HandshakeReq {
+  required uint32 major_version = 1;
+  required uint32 minor_version = 2;
+  repeated Pair options = 3;
+}
+
+// Handshake ack
+message AckResp {
+}
+
+message Pos {
+  required uint32 pos = 1;
+  required uint32 bits = 2;
+}
+
+// Fetch Tree
+message FetchReq {
+  required Pos pos = 1;
+}
+
+message Leaf {
+  required Pos pos = 1;
+  required bytes data = 2;
+}
+
+message LeavesResp {
+  repeated Leaf leaves = 1;
+}
+
+// Fetch Done
+message FetchDoneMsg {
+}
+
+// get hash (pos)
+message GetHashReq {
+  required Pos pos = 1;
+}
+
+message HashResp {
+  required Pos pos = 1;
+  required bytes hash = 2;
+}
+
+// Stop Fetch
+message CancelFetchReq {
+}
+
+// Error
+message ErrorMsg {
+  required uint32 code  = 1;
+  optional string msg   = 2;
+}
+
+// Disconnect
+message DisconnectMsg {
+  required code = 1;
+  optional string msg = 2;
+}
