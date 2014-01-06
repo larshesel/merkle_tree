@@ -24,5 +24,9 @@ start_link() ->
 %% ===================================================================
 
 init([]) ->
-    {ok, { {one_for_one, 5, 10}, []} }.
+    Children = [
+		?CHILD(mtree_tcp_listener, worker),
+		?CHILD(mtree_proxy_sup, supervisor)
+	       ],
+    {ok, { {one_for_one, 5, 10}, Children} }.
 

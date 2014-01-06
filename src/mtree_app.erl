@@ -19,12 +19,12 @@ ensure_started(App) ->
 
 
 start(_StartType, _StartArgs) ->
-    ensure_started(sasl),
-    ensure_started(os_mon),
-    ensure_started(compiler),
-    ensure_started(syntax_tools),
-    ensure_started(goldrush),
-    ensure_started(lager),
+    ok = ensure_started(sasl),
+    ok = ensure_started(os_mon),
+    ok = ensure_started(compiler),
+    ok = ensure_started(syntax_tools),
+    ok = ensure_started(goldrush),
+    ok = ensure_started(lager),
     mtree_sup:start_link().
 
 stop(_State) ->
