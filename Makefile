@@ -2,7 +2,7 @@
 all:	compile
 
 test:	compile
-	rebar eunit skip_deps=true
+	ERL_LIBS="../.." rebar eunit skip_deps=true
 
 compile:
 	rebar compile
