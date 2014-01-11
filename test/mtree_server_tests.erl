@@ -26,8 +26,51 @@ start_server_and_sync_file_test_() ->
 	     [ ?_assertEqual(ExpectedSum, ActualSum) ]
      end}.
 
+start_server_and_async_file_test_() ->
+    {setup,
+     %% setup
+     fun() ->
+	     Name = create_rand_file(130000),
+	     Tree = mtree_file:build_tree(Name, 4096),
+	     {ok, ServerPid} = mtree_server:start_link(Tree),
+	     ClientPid = self(),
+	     ok = mtree_server:set_client(ServerPid, ClientPid),
+	     {ServerPid, Tree, ClientPid, Name}
+     end,
+     %% teardown
+     fun({ServerPid, _ServerTree, _ClientPid, Name}) ->
+	     gen_server:call(ServerPid, stop),
+	     ?cmd("rm " ++ Name)
+     end,
+     %% test
+     fun({ServerPid, _ServerTree, _ClientPid, Name}) ->
+	     ok = mtree_server:start_sync(ServerPid, <<>>),
+	     Tree = until_sync_done(ServerPid, mtree:new()),
 
-%% TODO: get rid of all of these OS dependecies: cut, sha1sum...
+	     NewFile = tmp_file(rand_file_name()),
+	     ok = mtree_file:write(Tree, NewFile),
+	     ExpectedSum = sum_file(Name),
+	     ActualSum = sum_file(NewFile),
+	     ?cmd("rm " ++ NewFile),
+	     [ ?_assertEqual(ExpectedSum, ActualSum) ]
+     end}.
+
+
+until_sync_done(ServerPid, Tree) ->
+    receive
+	{sync_done, ServerPid} ->
+	    io:format(user, "Received: sync done~n", []),
+	    Tree;
+	{leaf, Val, Pos} ->
+	    io:format(user, "Received leaf at pos: ~p~n", [util:bin_to_pos(Pos)]),
+	    Tree1 = mtree:insert(Tree, Val, Pos),
+	    until_sync_done(ServerPid, Tree1)
+    after
+	1000 ->
+	    error({sync_failed, timeout})
+    end.
+
+%% TODO: get rid of these OS dependecies: cut, sha1sum...
 -define(SUM_EXEC, "sha1sum").
 -define(CUT_EXEC, "cut").
 

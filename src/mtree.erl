@@ -1,6 +1,7 @@
 -module(mtree).
 
--export([build_tree_bottom_up/1, mk_leaf/1, get_node_val/2]).
+-export([build_tree_bottom_up/1, get_subtree/2, mk_leaf/1,
+	 get_node_val/2, traverse_preorder/3]).
 
 -export([new/0, insert/3, verify/1]).
 
@@ -30,16 +31,32 @@ insert({inner, Val, L, R}, LVal, <<0:1, Pos/bitstring>>) ->
 insert({inner, Val, L, R}, RVal, <<1:1, Pos/bitstring>>) ->
     {inner, Val, L, insert(R, RVal, Pos)}.
 
+-spec get_subtree(T :: mtree(), pos_bin()) ->
+			 mtree() | {error, invalid_pos}.
+get_subtree({inner, _Val, _L,_R} = N, <<>>) ->
+    N;
+get_subtree({leaf, _Val} = N, <<>>) ->
+    N;
+get_subtree({inner, _Val, L, _R}, <<0:1, T/bitstring>>) ->
+    get_subtree(L, T);
+get_subtree({inner, _Val, _L, R}, <<1:1, T/bitstring>>) ->
+    get_subtree(R, T);
+get_subtree(_, _) ->
+    {error, invalid_pos}.
+
 -spec get_node_val(T :: mtree(), pos_bin()) ->
-			  {leaf, val()} | {inner, val()}.
-get_node_val({inner, Val, _L,_R}, <<>>) ->
-    {inner, Val};
-get_node_val({inner, _Val, L, _R}, <<0:1, T/bitstring>>) ->
-    get_node_val(L, T);
-get_node_val({inner, _Val, _L, R}, <<1:1, T/bitstring>>) ->
-    get_node_val(R, T);
-get_node_val({leaf, Val}, <<>>) ->
-    {leaf, Val}.
+			  {leaf, val()}
+			      | {inner, val()}
+			      | {error, invalid_pos}.
+get_node_val(T, Pos) ->
+    case get_subtree(T, Pos) of
+	{inner, Val, _L, _R} ->
+	    {inner, Val};
+	{leaf, Val} ->
+	    {leaf, Val};
+	{error, invalid_pos} ->
+	    {error, invalid_pos}
+    end.
 
 -spec verify(mtree()) -> ok | {pos_bin(), hash(), hash()}.
 verify(T) ->
@@ -108,5 +125,13 @@ mk_leaf(Data) ->
 -spec hash(Data::binary()) -> Digest::hash().
 hash(Data) ->
     crypto:hash(sha256, Data).
+
+-spec traverse_preorder(mtree(), fun(), pos_bin()) -> ok.
+traverse_preorder({leaf, _} = N, F, Pos) ->
+    F(N, Pos);
+traverse_preorder({inner, _, L, R} = N, F, Pos) ->
+    F(N, Pos),
+    traverse_preorder(L, F, <<Pos/bitstring, 0:1>>),
+    traverse_preorder(R, F, <<Pos/bitstring, 1:1>>).
 
 
