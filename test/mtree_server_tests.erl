@@ -34,7 +34,6 @@ start_server_and_async_file_test_() ->
 	     Tree = mtree_file:build_tree(Name, 4096),
 	     ClientPid = self(),
 	     {ok, ServerPid} = mtree_server:start_link(Tree, client_mock, ClientPid),
-	     ok = mtree_server:set_client(ServerPid, ClientPid),
 	     {ServerPid, Tree, ClientPid, Name}
      end,
      %% teardown

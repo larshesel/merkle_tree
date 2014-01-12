@@ -10,7 +10,7 @@
 -export([get_node_val/2]).
 
 %% protocol support
--export([start_sync/2, set_client/2]).
+-export([start_sync/2]).
 
 %% gen_server callbacks
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
@@ -30,10 +30,6 @@
 start_sync(Pid, Pos) ->
     gen_server:cast(Pid, {start_sync, Pos}).
 
--spec set_client(pid(), pid()) -> ok | {error, wont_set_my_own_pid}.
-set_client(ServerPid, ClientPid) ->
-    gen_server:call(ServerPid, {set_client, ClientPid}).
-
 -spec get_node_val(pid(), pos_bin()) ->
 			  {ok, any()}.
 get_node_val(Pid, Pos) ->
@@ -51,13 +47,6 @@ init([MerkleTree, ClientMod, ClientPid]) ->
 		client=ClientPid,
 		client_mod=ClientMod}}.
 
-
-handle_call({set_client, Pid}, _From, S) ->
-    if self() =:= Pid ->
-	    {reply, {error, wont_set_my_own_pid}, S};
-       true ->
-	    {reply, ok, S#state{client = Pid}}
-    end;
 handle_call({get_node_val, Pos}, _From, S = #state{mtree = T}) ->
     Node = mtree:get_node_val(T, Pos),
     {reply, {ok, Node}, S};
