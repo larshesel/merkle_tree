@@ -5,7 +5,7 @@
 -include("mtree.hrl").
 
 %% API
--export([start_link/1]).
+-export([start_link/3]).
 
 -export([get_node_val/2]).
 
@@ -18,14 +18,14 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {mtree=undefined, client=undefined }).
+-record(state, {mtree, client, client_mod}).
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
 %% @doc Start an asynchronous fetch of the subtree given by Pos.
-%% 
+%%
 -spec start_sync(pid(), pos_bin()) -> ok.
 start_sync(Pid, Pos) ->
     gen_server:cast(Pid, {start_sync, Pos}).
@@ -39,15 +39,17 @@ set_client(ServerPid, ClientPid) ->
 get_node_val(Pid, Pos) ->
     gen_server:call(Pid, {get_node_val, Pos}).
 
-start_link(MerkleTree) ->
-    gen_server:start_link(?MODULE, [MerkleTree], []).
+start_link(MerkleTree, ClientMod, ClientPid) ->
+    gen_server:start_link(?MODULE, [MerkleTree, ClientMod, ClientPid], []).
 
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================
 
-init([MerkleTree]) ->
-    {ok, #state{mtree=MerkleTree}}.
+init([MerkleTree, ClientMod, ClientPid]) ->
+    {ok, #state{mtree=MerkleTree,
+		client=ClientPid,
+		client_mod=ClientMod}}.
 
 
 handle_call({set_client, Pid}, _From, S) ->
@@ -66,9 +68,9 @@ handle_call(Request, _From, State) ->
     Reply = ok,
     {reply, Reply, State}.
 
-handle_cast({start_sync, Pos}, S=#state{client=ClientPid, mtree=Root}) ->
+handle_cast({start_sync, Pos}, S=#state{client=ClientPid, client_mod=Mod, mtree=Root}) ->
     STree= mtree:get_subtree(Root, Pos),
-    send_leaves(ClientPid, STree),
+    send_leaves(ClientPid, Mod, STree),
     {noreply, S};
 handle_cast(_Msg, State) ->
     {noreply, State}.
@@ -85,16 +87,16 @@ code_change(_OldVsn, State, _Extra) ->
 %%%===================================================================
 %%% Internal functions
 %%%===================================================================
-send_leaves(ClientPid, Tree) ->
+send_leaves(ClientPid, Mod, Tree) ->
     mtree:traverse_preorder(Tree, fun(N, Pos) ->
-				    send_leaf(ClientPid, N, Pos)
-			    end,
-		      <<>>),
+					  send_leaf(ClientPid, Mod, N, Pos)
+				  end,
+			    <<>>),
     send_sync_done(ClientPid).
 
-send_leaf(ClientPid, {leaf, Val}, Pos) ->
-    ClientPid ! {leaf, Val, Pos};
-send_leaf(_, _, _) ->
+send_leaf(ClientPid, Mod, {leaf, Val}, Pos) ->
+    Mod:send_leaf(ClientPid, Val, Pos);
+send_leaf(_, _, _, _) ->
     ok.
 
 
