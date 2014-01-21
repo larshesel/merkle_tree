@@ -5,7 +5,7 @@
 %% messages.
 
 handshake_req_test() ->
-    Pair = merkle_tree_proto:pair(<<"key">>, <<"val">>),
+    Pair = merkle_tree_pb_util:create_pair(<<"key">>, <<"val">>),
     Data = merkle_tree_pb_util:create_handshake_req(1,0,[Pair]),
     gen_test(Data,
              fun merkle_tree_pb:encode_handshakereq/1,

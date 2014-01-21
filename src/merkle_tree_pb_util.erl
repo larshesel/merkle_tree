@@ -16,6 +16,9 @@
 -define(HASH_RESP, 7).
 -define(ERROR_MSG, 8).
 
+create_pair(K, V) ->
+    #pair{key = K, val = V}.
+
 create_handshake_req(Major, Minor, Opts) when is_list(Opts) ->
     #handshakereq{major_version = Major, minor_version = Minor, options = Opts}.
 
