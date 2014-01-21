@@ -16,6 +16,19 @@
 -define(HASH_RESP, 7).
 -define(ERROR_MSG, 8).
 
+create_merkle_msg(#handshakereq{} = Inner) when is_record(Inner, handshakereq) ->
+    #merklemsg{type = 'HANDSHAKE_REQ', handshakereq = Inner};
+create_merkle_msg(#ackresp{} = Inner) ->
+    #merklemsg{type = 'ACK_RESP', ackresp = Inner};
+create_merkle_msg(#fetchreq{} = Inner) ->
+    #merklemsg{type = 'FETCH_REQ', fetchreq = Inner};
+create_merkle_msg(#leavesresp{} = Inner) ->
+    #merklemsg{type = 'LEAVES_RESP', leavesresp = Inner};
+create_merkle_msg(#fetchdonemsg{} = Inner) ->
+    #merklemsg{type = 'FETCHDONE_MSG', fetchdonemsg = Inner};
+create_merkle_msg(#hashreq{} = Inner) ->
+    #merklemsg{type = 'HASH_REQ', hashreq = Inner}.
+
 create_pair(K, V) ->
     #pair{key = K, val = V}.
 
@@ -47,8 +60,8 @@ create_leaves_resp(Leaves) ->
 create_fetch_done_msg() ->
     #fetchdonemsg{}.
 
-create_get_hash_req(PosBin) ->
-    #gethashreq{pos = pos(PosBin)}.
+create_hash_req(PosBin) ->
+    #hashreq{pos = pos(PosBin)}.
 
 create_hash_resp(PosBin, Hash) ->
     #hashresp{pos = pos(PosBin), hash = Hash}.

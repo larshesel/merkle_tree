@@ -4,8 +4,19 @@
 %% test encoding and decoding of the different merkle-tree protocol
 %% messages.
 
+gen_pair() ->
+    merkle_tree_pb_util:create_pair(<<"key">>, <<"val">>).
+
+merkle_msg_test() ->
+    Pair = gen_pair(),
+    HSReq = merkle_tree_pb_util:create_handshake_req(1,0,[Pair]),
+    Data = merkle_tree_pb_util:create_merkle_msg(HSReq),
+    gen_test(Data,
+             fun merkle_tree_pb:encode_merklemsg/1,
+             fun merkle_tree_pb:decode_merklemsg/1).
+
 handshake_req_test() ->
-    Pair = merkle_tree_pb_util:create_pair(<<"key">>, <<"val">>),
+    Pair = gen_pair(),
     Data = merkle_tree_pb_util:create_handshake_req(1,0,[Pair]),
     gen_test(Data,
              fun merkle_tree_pb:encode_handshakereq/1,
@@ -48,12 +59,12 @@ fetch_done_msg_test() ->
              fun merkle_tree_pb:encode_fetchdonemsg/1,
              fun merkle_tree_pb:decode_fetchdonemsg/1).
 
-get_hash_req_test() ->
+hash_req_test() ->
     PosBin = <<234:9>>,
-    Data = merkle_tree_pb_util:create_get_hash_req(PosBin),
+    Data = merkle_tree_pb_util:create_hash_req(PosBin),
     gen_test(Data,
-             fun merkle_tree_pb:encode_gethashreq/1,
-             fun merkle_tree_pb:decode_gethashreq/1).
+             fun merkle_tree_pb:encode_hashreq/1,
+             fun merkle_tree_pb:decode_hashreq/1).
 
 hash_resp_test() ->
     PosBin = <<34:13>>,

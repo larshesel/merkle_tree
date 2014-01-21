@@ -16,7 +16,7 @@ message MerkleMsg {
               FETCH_REQ = 3;
               LEAVES_RESP = 4;
               FETCHDONE_MSG = 5;
-              GETHASH_REQ = 6;
+              HASH_REQ = 6;
               HASH_RESP = 7;
               ERROR_MSG = 8; }
 
@@ -27,7 +27,7 @@ message MerkleMsg {
   optional FetchReq fetchreq = 4;
   optional LeavesResp leavesresp = 5;
   optional FetchDoneMsg fetchdonemsg = 6;
-  optional GetHashReq gethashreq = 7;
+  optional HashReq hashreq = 7;
   optional HashResp hahsresp = 8;
   optional ErrorMsg errormsg = 9;
 }
@@ -72,7 +72,7 @@ message FetchDoneMsg {
 }
 
 // get hash (pos)
-message GetHashReq {
+message HashReq {
   required Pos pos = 1;
 }
 
