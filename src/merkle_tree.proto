@@ -10,6 +10,28 @@
 // | ------ get hash <<>> ---->|
 // | <----- hash --------------|
 
+message MerkleMsg {
+  enum Type { HANDSHAKE_REQ = 1;
+              ACK_RESP = 2;
+              FETCH_REQ = 3;
+              LEAVES_RESP = 4;
+              FETCHDONE_MSG = 5;
+              GETHASH_REQ = 6;
+              HASH_RESP = 7;
+              ERROR_MSG = 8; }
+
+  required Type type = 1;
+
+  optional HandshakeReq handshakereq = 2;
+  optional AckResp ackresp = 3;
+  optional FetchReq fetchreq = 4;
+  optional LeavesResp leavesresp = 5;
+  optional FetchDoneMsg fetchdonemsg = 6;
+  optional GetHashReq gethashreq = 7;
+  optional HashResp hahsresp = 8;
+  optional ErrorMsg errormsg = 9;
+}
+
 message Pair {
   required bytes key = 1;
   required bytes val = 2;
@@ -27,8 +49,8 @@ message AckResp {
 }
 
 message Pos {
-  required uint32 pos = 1;
-  required uint32 bits = 2;
+  required bytes pos = 1;
+  required uint32 num_bits = 2;
 }
 
 // Fetch Tree
@@ -59,18 +81,8 @@ message HashResp {
   required bytes hash = 2;
 }
 
-// Stop Fetch
-message CancelFetchReq {
-}
-
 // Error
 message ErrorMsg {
   required uint32 code  = 1;
   optional string msg   = 2;
-}
-
-// Disconnect
-message DisconnectMsg {
-  required code = 1;
-  optional string msg = 2;
 }
