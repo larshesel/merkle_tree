@@ -2,7 +2,7 @@
 
 -export([fetch/1]).
 
--include("mtree.hrl").
+-include_lib("mtree_core/include/mtree.hrl").
 
 -spec fetch(pid()) ->
 		   {ok, mtree()}.

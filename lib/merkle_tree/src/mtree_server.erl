@@ -2,7 +2,7 @@
 
 -behaviour(gen_server).
 
--include("mtree.hrl").
+-include_lib("mtree_core/include/mtree.hrl").
 
 %% API
 -export([start_link/3]).

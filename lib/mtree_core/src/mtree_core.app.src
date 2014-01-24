@@ -1,0 +1,13 @@
+{application, mtree_core,
+ [
+  {description, ""},
+  {vsn, "1"},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+%% This is just a library application
+%%  {mod, { mtree_core_app, []}},
+  {env, []}
+ ]}.

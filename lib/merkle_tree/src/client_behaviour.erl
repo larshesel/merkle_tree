@@ -1,6 +1,6 @@
 -module(client_behaviour).
 
--include("mtree.hrl").
+-include_lib("mtree_core/include/mtree.hrl").
 
 -callback sync_done(Pid::pid()) ->
     ok.

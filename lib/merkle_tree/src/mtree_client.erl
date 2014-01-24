@@ -11,7 +11,7 @@
 
 -define(SERVER, ?MODULE).
 
--include("mtree.hrl").
+-include_lib("mtree_core/include/mtree.hrl").
 
 -type sync_state() :: idle | syncing.
 
