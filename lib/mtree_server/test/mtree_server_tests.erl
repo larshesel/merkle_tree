@@ -8,7 +8,9 @@ create_mtree() ->
 
 server_client_get_root_node_test() ->
     MTree = create_mtree(),
-    {ok, ServerPid} = mtree_server:start_link(MTree, client_mock, self()),
+    %% pass 'undefined' as client module - server should not use it
+    %% when using get_node_val
+    {ok, ServerPid} = mtree_server:start_link(MTree, undefined, self()),
     {ok, ServerRootNode} = mtree_server:get_node_val(ServerPid, <<>>),
     RealRoot = mtree:get_node_val(MTree, <<>>),
     RealRoot = ServerRootNode.
@@ -16,7 +18,9 @@ server_client_get_root_node_test() ->
 server_client_fetch_tree_test() ->
     MTree = create_mtree(),
     mtree:verify(MTree),
-    {ok, ServerPid} = mtree_server:start_link(MTree, client_mock, self()),
+    %% pass 'undefined' as client module - server should not use it
+    %% when using fetch
+    {ok, ServerPid} = mtree_server:start_link(MTree, undefined, self()),
     {ok, FetchedTree} = mtree_fetch:fetch(ServerPid),
     MTree = FetchedTree.
 

@@ -24,7 +24,7 @@
 -record(state, {sock, incomplete_frame = <<>>}).
 -type state() :: #state{}.
 
--define(FRAME_HDR_LEN, 3*8).
+-define(FRAME_HDR_LEN, 3*8). %% bits
 %%-define(FRAME_MAX_SIZE, 16#ffffff).
 
 %%%===================================================================
@@ -112,7 +112,10 @@ add_to_incoming_frame(#state{incomplete_frame = Inc} = State, Data) ->
 handle_packet(_FrameData, State) ->
     State.
 
-%% testing
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% testing %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 -ifdef(TEST).
 
 fake_frame_data(FrameData) ->
