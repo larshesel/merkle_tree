@@ -77,10 +77,10 @@ start_server_and_async_file_test_() ->
 until_sync_done(ServerPid, Tree) ->
     receive
 	{sync_done, ServerPid} ->
-	    io:format(user, "Received: sync done~n", []),
+	    %%io:format(user, "Received: sync done~n", []),
 	    Tree;
 	{leaf, Val, Pos} ->
-	    io:format(user, "Received leaf at pos: ~p~n", [util:bin_to_pos(Pos)]),
+	    %%io:format(user, "Received leaf at pos: ~p~n", [util:bin_to_pos(Pos)]),
 	    Tree1 = mtree:insert(Tree, Val, Pos),
 	    until_sync_done(ServerPid, Tree1)
     after
