@@ -1,4 +1,4 @@
-{application, merkle_tree,
+{application, mtree_server,
  [
   {description, ""},
   {vsn, "1"},

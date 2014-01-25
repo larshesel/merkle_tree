@@ -113,7 +113,7 @@ create_rand_file(Size) ->
     Name.
 
 tmp_dir() ->
-    Dir = code:lib_dir(merkle_tree) ++ "/test/tmp/",
+    Dir = code:lib_dir(mtree_server) ++ "/test/tmp/",
     filelib:ensure_dir(Dir),
     Dir.
 
