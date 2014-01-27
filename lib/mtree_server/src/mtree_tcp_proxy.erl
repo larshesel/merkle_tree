@@ -9,7 +9,7 @@
 %% instance.
 %%
 %% Client <- tcp -> mtree_tcp_proxy <- erlang -> mtree_server.
-
+-include_lib("mtree_core/include/merkle_tree_pb.hrl").
 -behaviour(gen_server).
 
 %% API
@@ -21,7 +21,7 @@
 
 -define(SERVER, ?MODULE).
 
--record(state, {sock, incomplete_frame = <<>>}).
+-record(state, {sock, incomplete_frame = <<>>, server_pid}).
 -type state() :: #state{}.
 
 -define(FRAME_HDR_LEN, 3*8). %% bits
@@ -31,7 +31,7 @@
 %%% API
 %%%===================================================================
 start_supervised(Sock) ->
-    mtree_proxy_sup:add_child([Sock]).
+    mtree_proxy_sup:add_child(Sock).
 
 
 start_link(Sock) ->
@@ -85,8 +85,13 @@ set_active(Sock) ->
 maybe_handle_frame(State) ->
     case build_packet(State) of
 	{complete, Packet, State1} ->
-	    State2 = handle_packet(Packet, State1),
-	    maybe_handle_frame(State2);
+            case handle_packet(Packet, State1) of
+                {error, Reason} ->
+                    error_logger:info_msg("Error while handling packet, shutting down. Reason: ~p~n", [Reason]),
+                    {stop, normal, Reason, State};
+                State2 ->
+                    maybe_handle_frame(State2)
+            end;
 	{incomplete, State1} ->
 	    State1
     end.
@@ -97,6 +102,7 @@ build_packet(#state{incomplete_frame =
 		       <<FrameLen:(?FRAME_HDR_LEN), Frame/binary>>} = State) ->
     case Frame of
 	<<CompleteFrame:FrameLen/binary, NextFrame/binary>> ->
+            error_logger:info_msg("Received complete frame!", []),
 	    {complete, CompleteFrame, State#state{incomplete_frame = NextFrame}};
 	 _ ->
 	    error_logger:info_msg("Still incomplete: FrameLen: ~p~n", [byte_size(Frame)]),
@@ -109,8 +115,54 @@ build_packet(State) ->
 add_to_incoming_frame(#state{incomplete_frame = Inc} = State, Data) ->
     State#state{ incomplete_frame = <<Inc/binary, Data/binary>> }.
 
-handle_packet(_FrameData, State) ->
-    State.
+handle_packet(FrameData, State) ->
+    Msg = merkle_tree_pb:decode_merklemsg(FrameData),
+    handle_merklemsg(Msg, State).
+
+-define(MAJOR, 1).
+-define(MINOR, 0).
+
+
+handle_merklemsg(#merklemsg{type = 'HANDSHAKE_REQ', handshakereq = HSReq}, S) ->
+    case handle_handshake(HSReq, S) of
+        {ok, S} ->
+            send(ack, S);
+        {error, {wrong_version, supports, ?MAJOR, ?MINOR}, S} ->
+            S = send({error, 0, "wrong version"}, S),
+            {stop, normal, ok, S}
+    end;
+handle_merklemsg(_Msg, S) ->
+    send({error, 0, "not implemented"}, S).
+
+handle_handshake(#handshakereq{major_version = ?MAJOR,
+                               minor_version = ?MINOR,
+                               options = Opts}, S) ->
+    %% TODO add authentication and authorization here, based on Opts.
+    case proplists:get_value(single_tree, Opts) of
+        Name ->
+            %% TODO, create a tree builder - based on the spec from the
+            %% app config.
+            case application:get_env(mtree_server, single_tree) of
+                {ok, {Name, Tree}} ->
+                    ServerPid = mtree_server_sup:add_child(Tree, Opts),
+                    {ok, S#state{server_pid = ServerPid}};
+                X ->
+                    {error, {wrong_version, supports, ?MAJOR, ?MINOR}, S}
+            end
+    end;
+handle_handshake(_, S) ->
+    {error, {wrong_version, supports, ?MAJOR, ?MINOR}, S}.
+
+
+send({error, Code, Msg}, #state{sock=Sock} = S) ->
+    ErrMsg = merkle_tree_pb_util:create_error_msg(Code, Msg),
+    MMsg = merkle_tree_pb_util:create_merkle_msg(ErrMsg),
+    EMsg = erlang:iolist_to_binary(merkle_tree_pb:encode_merklemsg(MMsg)),
+    ok = gen_tcp:send(Sock, EMsg),
+    S.
+
+start_mtree_server() ->
+    ok.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% testing %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

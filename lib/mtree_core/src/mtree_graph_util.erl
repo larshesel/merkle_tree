@@ -1,4 +1,4 @@
--module(test_util).
+-module(mtree_graph_util).
 
 -export([write_dot_file/2]).
 

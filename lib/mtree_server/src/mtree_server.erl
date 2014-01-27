@@ -38,6 +38,7 @@ get_node_val(Pid, Pos) ->
 start_link(MerkleTree, ClientMod, ClientPid) ->
     gen_server:start_link(?MODULE, [MerkleTree, ClientMod, ClientPid], []).
 
+
 %%%===================================================================
 %%% gen_server callbacks
 %%%===================================================================

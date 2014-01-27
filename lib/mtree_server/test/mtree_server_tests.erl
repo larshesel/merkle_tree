@@ -28,7 +28,7 @@ start_server_and_sync_file_test_() ->
     {setup,
      %% setup
      fun() ->
-	     Name = create_rand_file(130000),
+	     Name = test_util:create_rand_file(130000),
 	     Tree = mtree_file:build_tree(Name, 4096),
 	     {ok, Pid} = mtree_server:start_link(Tree, client_mock, self()),
 	     {Pid, Name}
@@ -41,10 +41,10 @@ start_server_and_sync_file_test_() ->
      %% test
      fun({Pid, Name}) ->
 	     {ok, Tree} = mtree_fetch:fetch(Pid),
-	     NewFile = tmp_file(rand_file_name()),
+	     NewFile = test_util:tmp_file(test_util:rand_file_name()),
 	     ok = mtree_file:write(Tree, NewFile),
-	     ExpectedSum = sum_file(Name),
-	     ActualSum = sum_file(NewFile),
+	     ExpectedSum = test_util:sum_file(Name),
+	     ActualSum = test_util:sum_file(NewFile),
 	     ?cmd("rm " ++ NewFile),
 	     [ ?_assertEqual(ExpectedSum, ActualSum) ]
      end}.
@@ -53,7 +53,7 @@ start_server_and_async_file_test_() ->
     {setup,
      %% setup
      fun() ->
-	     Name = create_rand_file(130000),
+	     Name = test_util:create_rand_file(130000),
 	     Tree = mtree_file:build_tree(Name, 4096),
 	     ClientPid = self(),
 	     {ok, ServerPid} = mtree_server:start_link(Tree, client_mock, ClientPid),
@@ -69,10 +69,10 @@ start_server_and_async_file_test_() ->
 	     ok = mtree_server:start_sync(ServerPid, <<>>),
 	     Tree = until_sync_done(ServerPid, mtree:new()),
 
-	     NewFile = tmp_file(rand_file_name()),
+	     NewFile = test_util:tmp_file(test_util:rand_file_name()),
 	     ok = mtree_file:write(Tree, NewFile),
-	     ExpectedSum = sum_file(Name),
-	     ActualSum = sum_file(NewFile),
+	     ExpectedSum = test_util:sum_file(Name),
+	     ActualSum = test_util:sum_file(NewFile),
 	     ?cmd("rm " ++ NewFile),
 	     [ ?_assertEqual(ExpectedSum, ActualSum) ]
      end}.
@@ -92,39 +92,3 @@ until_sync_done(ServerPid, Tree) ->
 	    error({sync_failed, timeout})
     end.
 
-%% TODO: get rid of these OS dependecies: cut, sha1sum...
--define(SUM_EXEC, "sha1sum").
--define(CUT_EXEC, "cut").
-
-needed_executables_are_present_test() ->
-    ?assertEqual(ok, exec_exists(?SUM_EXEC)),
-    ?assertEqual(ok, exec_exists(?CUT_EXEC)).
-
-sum_file(File) ->
-    os:cmd(?SUM_EXEC " " ++ File ++ " | " ?CUT_EXEC " -d' ' -f1").
-
-exec_exists(File) ->
-    case os:find_executable(File) of
-	false ->
-	    {executable_not_found, File};
-	_ -> ok
-    end.
-
-create_rand_file(Size) ->
-    Name = tmp_file(rand_file_name()),
-    Data = [X rem 256 || X <- lists:seq(1,Size)],
-    ok = file:write_file(Name, Data),
-    Name.
-
-tmp_dir() ->
-    Dir = code:lib_dir(mtree_server) ++ "/test/tmp/",
-    filelib:ensure_dir(Dir),
-    Dir.
-
-tmp_file(Name) ->
-    tmp_dir() ++ Name.
-
-rand_file_name() ->
-    {A,B,C}=now(),
-    N=node(),
-    lists:flatten(io_lib:format("~p-~p.~p.~p",[N,A,B,C])).

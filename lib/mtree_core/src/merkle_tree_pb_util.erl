@@ -27,7 +27,9 @@ create_merkle_msg(#leavesresp{} = Inner) ->
 create_merkle_msg(#fetchdonemsg{} = Inner) ->
     #merklemsg{type = 'FETCHDONE_MSG', fetchdonemsg = Inner};
 create_merkle_msg(#hashreq{} = Inner) ->
-    #merklemsg{type = 'HASH_REQ', hashreq = Inner}.
+    #merklemsg{type = 'HASH_REQ', hashreq = Inner};
+create_merkle_msg(#errormsg{} = Inner) ->
+    #merklemsg{type = 'ERROR_MSG', errormsg = Inner}.
 
 create_pair(K, V) ->
     #pair{key = K, val = V}.

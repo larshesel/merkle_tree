@@ -1,0 +1,3 @@
+#!/bin/bash
+erl -pa ./lib/*/ebin -pa ./deps/*/ebin -sname mserver -eval "application:start(mtree_server)"
+
