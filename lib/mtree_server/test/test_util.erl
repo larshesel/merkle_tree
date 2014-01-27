@@ -5,19 +5,8 @@
 -define(SUM_EXEC, "sha1sum").
 -define(CUT_EXEC, "cut").
 
-%% needed_executables_are_present_test() ->
-%%     ?assertEqual(ok, exec_exists(?SUM_EXEC)),
-%%     ?assertEqual(ok, exec_exists(?CUT_EXEC)).
-
 sum_file(File) ->
     os:cmd(?SUM_EXEC " " ++ File ++ " | " ?CUT_EXEC " -d' ' -f1").
-
-exec_exists(File) ->
-    case os:find_executable(File) of
-	false ->
-	    {executable_not_found, File};
-	_ -> ok
-    end.
 
 create_rand_file(Size) ->
     Name = tmp_file(rand_file_name()),

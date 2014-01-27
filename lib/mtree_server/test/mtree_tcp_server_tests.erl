@@ -2,8 +2,6 @@
 -include_lib("eunit/include/eunit.hrl").
 -include_lib("mtree_core/include/merkle_tree_pb.hrl").
 
-
-
 tcp_server_handshake_test_() ->
     {setup,
      %% setup
@@ -13,7 +11,6 @@ tcp_server_handshake_test_() ->
 	     Tree = mtree_file:build_tree(Filename, 4096),
 
              %% configure application
-
              Port = 4567,
              IpAddr = "127.0.0.1",
              Treename = <<"name">>,
@@ -27,12 +24,12 @@ tcp_server_handshake_test_() ->
              {Filename, Treename, IpAddr, Port}
      end,
      %% teardown
-     fun({Filename, Treename, IpAddr, Port}) ->
+     fun({Filename, _Treename, _IpAddr, _Port}) ->
 	     ?cmd("rm " ++ Filename),
              application:stop(mtree_server)
      end,
      %% test
-     fun({Filename, Treename, IpAddr, Port}) ->
+     fun({_Filename, Treename, IpAddr, Port}) ->
              {ok, Sock} = gen_tcp:connect(IpAddr, Port, [binary, {packet, 4}, {active, false}]),
              Opts = [merkle_tree_pb_util:create_pair(<<"single_tree">>, Treename)],
              HSMsg = merkle_tree_pb_util:create_handshake_req(1,0, Opts),
@@ -45,9 +42,3 @@ tcp_server_handshake_test_() ->
 
 	     [ ?_assertMatch(#merklemsg{type='ACK_RESP', ackresp=#ackresp{}}, RMMsg) ]
      end}.
-
-create_mtree() ->
-    SL = lists:seq(1,200),
-    BinList = erlang:list_to_binary(lists:flatten([SL || _ <- lists:seq(1,142)])),
-    mtree_raw:build_tree(BinList).
-
