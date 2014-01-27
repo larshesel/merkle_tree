@@ -30,14 +30,11 @@ tcp_server_handshake_test_() ->
      end,
      %% test
      fun({Filename, IpAddr, Port}) ->
-             {ok, Sock} = gen_tcp:connect(IpAddr, Port, [binary, {packet, 0}, {active, false}]),
+             {ok, Sock} = gen_tcp:connect(IpAddr, Port, [binary, {packet, 4}, {active, false}]),
              HSMsg = merkle_tree_pb_util:create_handshake_req(1,0, []),
              MMsg = merkle_tree_pb_util:create_merkle_msg(HSMsg),
-             EMsg = erlang:iolist_to_binary(merkle_tree_pb:encode_merklemsg(MMsg)),
-             BSize = binary:encode_unsigned(erlang:byte_size(EMsg)),
-             io:format(user, "BSize: ~p~n", [BSize]),
-             io:format(user, "Data: ~p~n", [<<0,0, BSize/binary, EMsg/binary>>]),
-             ok = gen_tcp:send(Sock, <<0,0, BSize/binary, EMsg/binary>>),
+             EMsg = merkle_tree_pb:encode_merklemsg(MMsg),
+             ok = gen_tcp:send(Sock, EMsg),
              error_logger:info_msg("send data~n", []),
              {ok, Data} = gen_tcp:recv(Sock, 0, 1000),
              io:format(user, "Recvd data: ~p~n", [Data]),

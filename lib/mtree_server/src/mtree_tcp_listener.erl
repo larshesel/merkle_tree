@@ -34,7 +34,7 @@ terminate(_Reason, _State) ->
     ok.
 
 sock_opts() ->
-    [binary, {packet, 0},{reuseaddr, true}].
+    [binary, {packet, 4}, {reuseaddr, true}].
 
 new_connection(Sock, State) ->
     error_logger:info_msg("Accepted new connection, starting mtree_tcp_proxy~n",[]),
