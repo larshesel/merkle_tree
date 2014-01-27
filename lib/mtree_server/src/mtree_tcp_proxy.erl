@@ -93,11 +93,11 @@ handle_packet(FrameData, State) ->
 
 handle_merklemsg(#merklemsg{type = 'HANDSHAKE_REQ', handshakereq = HSReq}, S) ->
     case handle_handshake(HSReq, S) of
-        {ok, S} ->
-            send(ack, S);
-        {error, {wrong_version, supports, ?MAJOR, ?MINOR}, S} ->
-            S = send({error, 0, "wrong version"}, S),
-            {stop, normal, ok, S}
+        {ok, S1} ->
+            send(ack, S1);
+        {error, {wrong_version, supports, ?MAJOR, ?MINOR}, S1} ->
+            S2 = send({error, 0, "wrong version"}, S1),
+            {stop, normal, ok, S2}
     end;
 handle_merklemsg(_Msg, S) ->
     send({error, 0, "not implemented"}, S).
@@ -105,17 +105,17 @@ handle_merklemsg(_Msg, S) ->
 handle_handshake(#handshakereq{major_version = ?MAJOR,
                                minor_version = ?MINOR,
                                options = Opts}, S) ->
+    Props = [{K,V} || {pair, K, V} <- Opts],
+
     %% TODO add authentication and authorization here, based on Opts.
-    case proplists:get_value(single_tree, Opts) of
+    case proplists:get_value(<<"single_tree">>, Props) of
         Name ->
             %% TODO, create a tree builder - based on the spec from the
-            %% app config.
-            case application:get_env(mtree_server, single_tree) of
-                {ok, {Name, Tree}} ->
-                    ServerPid = mtree_server_sup:add_child(Tree, Opts),
-                    {ok, S#state{server_pid = ServerPid}};
-                X ->
-                    {error, {wrong_version, supports, ?MAJOR, ?MINOR}, S}
+            %% app config. For now we just create our own instance.
+            case mtree_app:get_env(single_tree) of
+                {Name, Tree} ->
+                    {ok, ServerPid} = mtree_server_sup:add_child(Tree, ?MODULE, self()),
+                    {ok, S#state{server_pid = ServerPid}}
             end
     end;
 handle_handshake(_, S) ->
@@ -125,6 +125,12 @@ handle_handshake(_, S) ->
 send({error, Code, Msg}, #state{sock=Sock} = S) ->
     ErrMsg = merkle_tree_pb_util:create_error_msg(Code, Msg),
     MMsg = merkle_tree_pb_util:create_merkle_msg(ErrMsg),
+    EMsg = erlang:iolist_to_binary(merkle_tree_pb:encode_merklemsg(MMsg)),
+    ok = gen_tcp:send(Sock, EMsg),
+    S;
+send(ack, #state{sock=Sock} = S) ->
+    AckMsg = merkle_tree_pb_util:create_ack_resp(),
+    MMsg = merkle_tree_pb_util:create_merkle_msg(AckMsg),
     EMsg = erlang:iolist_to_binary(merkle_tree_pb:encode_merklemsg(MMsg)),
     ok = gen_tcp:send(Sock, EMsg),
     S.

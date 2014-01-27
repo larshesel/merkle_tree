@@ -3,7 +3,7 @@
 -behaviour(supervisor).
 
 %% API
--export([start_link/0, add_child/1]).
+-export([start_link/0, add_child/3]).
 
 %% Supervisor callbacks
 -export([init/1]).
@@ -14,8 +14,8 @@
 %%% API functions
 %%%===================================================================
 
-add_child(Args) ->
-    supervisor:start_child(?MODULE, [Args]).
+add_child(Tree, Mod, Pid) ->
+    supervisor:start_child(?MODULE, [Tree, Mod, Pid]).
 
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
