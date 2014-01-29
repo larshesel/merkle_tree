@@ -2,7 +2,7 @@
 all:	compile
 
 test:	compile
-	rebar eunit skip_deps=true
+	ERL_FLAGS="-sasl errlog_type error" rebar eunit skip_deps=true
 
 compile:
 	rebar compile
