@@ -24,8 +24,15 @@ tcp_hash_req_test() ->
 
 with_def_server(TestFun) ->
     {Filename, Treename, _IpAddr, _Port, Sock} = default_mtree_server(),
-    TestFun(Sock, Treename),
-    default_mtree_server_teardown(Sock, Filename).
+    try
+        TestFun(Sock, Treename)
+    catch
+        C:E -> io:format(user, "Crash: ~p:~p~n", [C,E]),
+               io:format(user, "Backtrace ~p~n", [erlang:get_stacktrace()]),
+               throw(E)
+    after
+        default_mtree_server_teardown(Sock, Filename)
+    end.
 
 default_mtree_server_teardown(Sock, Filename) ->
     ok = gen_tcp:close(Sock),
@@ -42,7 +49,7 @@ do_fetch_req(Sock, Pos) ->
     {ok, Data} = gen_tcp:recv(Sock, 0, 1000),
     RMMsg = merkle_tree_pb:decode_merklemsg(Data),
 
-    [ ?_assertMatch(#merklemsg{type='HASH_RESP', hashresp=#hashresp{}}, RMMsg) ].
+    ?assertMatch(#merklemsg{type='HASH_RESP', hashresp=#hashresp{}}, RMMsg).
 
 do_hash_req(Sock, Pos) ->
     GHMsg = merkle_tree_pb_util:create_hash_req(Pos),
@@ -53,7 +60,7 @@ do_hash_req(Sock, Pos) ->
     {ok, Data} = gen_tcp:recv(Sock, 0, 1000),
     RMMsg = merkle_tree_pb:decode_merklemsg(Data),
 
-    [ ?_assertMatch(#merklemsg{type='HASH_RESP', hashresp=#hashresp{}}, RMMsg) ].
+    ?assertMatch(#merklemsg{type='HASH_RESP', hashresp=#hashresp{}}, RMMsg).
 
 
 do_hs(Sock, Props) ->

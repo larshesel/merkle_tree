@@ -30,7 +30,7 @@ ack_resp_test() ->
 
 fetch_req_test() ->
     PosBin = <<1:1, 0:1, 1:1, 1:1, 0:1, 1:1>>,
-    Data = merkle_tree_pb_util:fetch_req(PosBin),
+    Data = merkle_tree_pb_util:create_fetch_req(PosBin),
     gen_test(Data,
              fun merkle_tree_pb:encode_fetchreq/1,
              fun merkle_tree_pb:decode_fetchreq/1).

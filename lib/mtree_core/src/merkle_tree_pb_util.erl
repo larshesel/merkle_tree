@@ -40,7 +40,7 @@ create_handshake_req(Major, Minor, Opts) when is_list(Opts) ->
 create_ack_resp() ->
     #ackresp{}.
 
-fetch_req(PosBin) when is_bitstring(PosBin) ->
+create_fetch_req(PosBin) when is_bitstring(PosBin) ->
     #fetchreq{pos = pos(PosBin)}.
 
 pos(PosBin) when is_bitstring(PosBin)->
