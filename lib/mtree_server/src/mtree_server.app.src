@@ -5,7 +5,13 @@
   {registered, []},
   {applications, [
                   kernel,
-                  stdlib
+                  stdlib,
+                  compiler,
+                  syntax_tools,
+                  goldrush,
+                  lager,
+                  sasl,
+                  os_mon
                  ]},
   {mod, { mtree_app, []}},
   {env, []}

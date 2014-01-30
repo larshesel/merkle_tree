@@ -28,7 +28,7 @@ message MerkleMsg {
   optional LeavesResp leavesresp = 5;
   optional FetchDoneMsg fetchdonemsg = 6;
   optional HashReq hashreq = 7;
-  optional HashResp hahsresp = 8;
+  optional HashResp hashresp = 8;
   optional ErrorMsg errormsg = 9;
 }
 
