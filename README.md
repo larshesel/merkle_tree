@@ -5,7 +5,7 @@
 I have been fascinated with Merkle trees or hash trees for a long
 time, and decided I wanted to build my own in Erlang.
 
-My long term goal (if I don't loose interest) is to build generic
+My long term goal (if I don't lose interest) is to build generic
 Merkle trees for synchronizing many different kinds of data such as
 large files, directories, filesystems or other kinds of data sets.
 
